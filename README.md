@@ -1,6 +1,11 @@
 # Final Project ASD
 
 Repository ini merupakan hasil final project kami kelompok 1 ASD Kelas D
+Anggota Kelompok:
+- Muhammad Akbar Ilman Setijadi
+- Nashiwa Insan Muflih
+- Gelar Ridho Ramadhan
+- Fahyi Nashaqi
 
 # Dependency
 
@@ -13,33 +18,58 @@ kemudian untuk dataset kamus bahasa inggris dan file database bisa diunduh [disi
 
 Setelah file diunduh, masukkan file `.csv` kamus kedalam folder app/src/main/resources
 ```
-└── src
-     └── main
-         ├── java
-         │   └── com
-         │       └── <nama>
-         │           ├── entry
-         │           │   └── Main.class
-         │           └── tree
-         │               ├── Node.class
-         │               ├── RadixNode.class
-         │               ├── RadixTree$Pair.class
-         │               ├── RadixTree.class
-         │               └── Trie.class
-         └── resources
-             ├── word_frequency_dataset.csv
-             └── words_alpha.txt
+final-project/
+├── latest_dictionary.db          # SQLite database untuk definisi kata
+│
+└── app/
+     └── src/
+          └── main/
+              ├── java/
+              │   └── com/
+              │       └── <nama>/
+              │           ├── entry/
+              │           │   └── Main.class
+              │           └── tree/
+              │               ├── Node.class
+              │               ├── RadixNode.class
+              │               ├── RadixTree$Pair.class
+              │               ├── RadixTree.class
+              │               └── Trie.class
+              │
+              └── resources/
+                  └── word_frequency_dataset.csv    # Dataset kata dengan rank dan frekuensi
 ```
 
 Setelah itu, masukkan file `.db` di struktur terluar repository ini
 
-```
-$ git clone https://github.com/NashiwaInsan/asdfinalproject.git final-project
-# masukkan langsung kedalam folder final project
-$ cd final-project
+## Installation
+
+### Clone Repository
+```bash
+git clone https://github.com/NashiwaInsan/asdfinalproject.git final-project
+cd final-project
 ```
 
-Setelah itu, jalankan menggunakan `gradle` pada _project root_
+### Install Gradle
+Pastikan Gradle sudah terinstall. Cek dengan:
+```bash
+gradle --version
 ```
-$ gradle installDist && ./app/build/install/app/bin/app
+
+Jika belum ada, install dari [gradle.org/install](https://gradle.org/install/) atau:
+- **Windows**: `choco install gradle` atau `scoop install gradle`
+- **macOS**: `brew install gradle`  
+- **Linux**: `sudo apt install gradle`
+
+### Run Application
+
+**Windows:**
+```bash
+gradle installDist
+app\build\install\app\bin\app.bat
+```
+
+**macOS / Linux:**
+```bash
+gradle installDist && ./app/build/install/app/bin/app
 ```
