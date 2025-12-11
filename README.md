@@ -16,7 +16,9 @@ Untuk menjalankan program ini, Anda perlu mengunduh
 kemudian untuk dataset kamus bahasa inggris dan file database bisa diunduh [disini](https://drive.google.com/drive/folders/1nVx7JThv_91ZFFK8wzJT901f9aMV7Kin?usp=sharing)
 
 
-Setelah file diunduh, masukkan file `.csv` kamus kedalam folder app/src/main/resources
+Setelah file diunduh, masukkan file `.csv` kamus kedalam folder *app/src/main/resources*
+
+Setelah itu, masukkan file `.db` di struktur terluar repository ini
 ```
 final-project/
 ├── latest_dictionary.db          # SQLite database untuk definisi kata
@@ -39,9 +41,6 @@ final-project/
               └── resources/
                   └── word_frequency_dataset.csv    # Dataset kata dengan rank dan frekuensi
 ```
-
-Setelah itu, masukkan file `.db` di struktur terluar repository ini
-
 ## Installation
 
 ### Clone Repository
