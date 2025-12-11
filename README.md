@@ -34,7 +34,7 @@ Setelah file diunduh, masukkan file `.csv` kamus kedalam folder app/src/main/res
 Setelah itu, masukkan file `.db` di struktur terluar repository ini
 
 ```
-$ git clone git@github.com:NashiwaInsan/asdfinalproject.git final-project
+$ git clone https://github.com/NashiwaInsan/asdfinalproject.git final-project
 # masukkan langsung kedalam folder final project
 $ cd final-project
 ```
