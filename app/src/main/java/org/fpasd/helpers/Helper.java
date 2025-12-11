@@ -2,14 +2,17 @@ package org.fpasd.helpers;
 
 public class Helper {
 
-	public static String getOrdinal(int position) {
-		String result = "";
-		switch (position) {
-			case 1 -> result = result + position + "st";
-			case 2 -> result = result + position + "nd";
-			case 3 -> result = result + position + "rd";
-			default -> result = result + position + "th";
-		}
-		return result;
-	}
+    public static String toOrdinal(int number) {
+        int mod100 = number % 100;
+        if (mod100 >= 11 && mod100 <= 13) {
+            return number + "th";
+        }
+    
+        switch (number % 10) {
+            case 1: return number + "st";
+            case 2: return number + "nd";
+            case 3: return number + "rd";
+            default: return number + "th";
+        }
+    }
 }
