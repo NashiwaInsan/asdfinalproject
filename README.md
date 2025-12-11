@@ -65,7 +65,7 @@ Jika belum ada, install dari [gradle.org/install](https://gradle.org/install/) a
 **Windows:**
 ```bash
 gradle installDist
-app\build\install\app\bin\app.bat
+./app/build/install/app/bin/app
 ```
 
 **macOS / Linux:**
