@@ -59,7 +59,7 @@ Untuk menjalankan aplikasi ini, Anda memerlukan:
 Aplikasi ini bergantung pada dua file data eksternal:
 
 1.  **`word_frequency_with_definitions.csv`**: File dataset yang berisi daftar kata, rank, dan frekuensi. Ini digunakan untuk membangun `RadixTree` dan *map* frekuensi/rank.
-2.  **`latest_dictionary.db`**: Database SQLite yang menyimpan definisi kata. Aplikasi akan mencari definisi berdasarkan `word_id` (yang sama dengan `rank` di file CSV).
+2.  **`dictionary.db`**: Database SQLite yang menyimpan definisi kata. Aplikasi akan mencari definisi berdasarkan `word_id` (yang sama dengan `rank` di file CSV).
 
 **Langkah-langkah Setup:**
 
@@ -68,15 +68,15 @@ Aplikasi ini bergantung pada dua file data eksternal:
     ```
     final-project/app/src/main/resources/
     ```
-3.  Tempatkan file **`latest_dictionary.db`** di direktori root proyek:
+3.  Tempatkan file **`dictionary.db`** di direktori root proyek:
     ```
-    final-project/latest_dictionary.db
+    final-project/dictionary.db
     ```
  ## 🌳 Susunan Proyek
 Struktur direktori utama proyek adalah sebagai berikut:
 ```
 final-project/
-├── latest_dictionary.db          # SQLite database untuk definisi kata
+├── dictionary.db          # SQLite database untuk definisi kata
 │
 └── app/
      └── src/
