@@ -2,8 +2,8 @@ package org.fpasd.menu;
 
 import com.github.lalyos.jfiglet.FigletFont;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +18,7 @@ import org.jline.reader.ParsedLine;
 import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.*;
 import org.jline.utils.InfoCmp.Capability;
+// import java.util.Collection;
 
 public class Menu {
 
@@ -70,7 +71,7 @@ public class Menu {
         String helpMsg = """
             Available Commands:
             1. dictionary (search a word based on a dictionary dataset)
-            2. play (play a frequency guessing game! Two players compete to guess word frequencies. Closest guess wins. Best of 3 rounds!)
+            2. play (play a rank guessing game! Two players compete to guess word ranks. Closest guess wins. Best of 3 rounds!)
             3. clear (clears the screen)
             4. exit (exit prompt)
 
@@ -82,14 +83,15 @@ public class Menu {
 
     static void playAGame(Terminal terminal) {
         terminal.puts(Capability.clear_screen);
-
+        
         // Banner game
-        String gameBanner = FigletFont.convertOneLine("Frequency Game");
+        String gameBanner = FigletFont.convertOneLine("Rank Game"); // Perubahan
         terminal.writer().println(gameBanner);
         terminal.writer().println("=".repeat(60));
         terminal
             .writer()
-            .println("Guess the word frequency! Closest guess wins!");
+            // Perubahan
+            .println("Guess the word rank! Closest guess wins! (Rank 0 is most common)"); 
         terminal.writer().println("Best of 3 rounds");
         terminal.writer().println("=".repeat(60));
         terminal.writer().println();
@@ -179,38 +181,19 @@ public class Menu {
         int player1Score = 0;
         int player2Score = 0;
         java.util.Random random = new java.util.Random();
-
+        
         for (int round = 1; round <= 3; round++) {
-            terminal.puts(Capability.clear_screen);
-            terminal.writer().println("=".repeat(60));
-            terminal
-                .writer()
-                .println("                      ROUND " + round + " / 3");
-            terminal.writer().println("=".repeat(60));
-            terminal
-                .writer()
-                .println(
-                    "Score: " +
-                        player1Name +
-                        " [" +
-                        player1Score +
-                        "] - [" +
-                        player2Score +
-                        "] " +
-                        player2Name
-                );
-            terminal.writer().println("=".repeat(60));
-            terminal.writer().println();
-
+        
             // Pilih kata random
             String selectedWord = wordList.get(random.nextInt(wordList.size()));
-            int actualFrequency = wordToFrequency.get(selectedWord);
-
+            int actualRank = wordToRank.get(selectedWord); 
+        
             // Tampilkan kata
             String wordDisplay = FigletFont.convertOneLine(selectedWord);
             terminal.writer().println(wordDisplay);
             terminal.writer().println("Word: " + selectedWord.toUpperCase());
-            terminal.writer().println("Guess the frequency of this word!");
+            // Perubahan: Minta tebak rank
+            terminal.writer().println("Guess the rank of this word!"); 
             terminal.writer().println();
 
             // Player 1 input
@@ -244,7 +227,7 @@ public class Menu {
 
             terminal
                 .writer()
-                .println(player1Name + " guessed: " + player1Guess);
+                .println(player1Name + " guessed: " + Helper.toOrdinal(player1Guess));
             terminal.writer().println();
 
             // Player 2 input
@@ -278,7 +261,7 @@ public class Menu {
 
             terminal
                 .writer()
-                .println(player2Name + " guessed: " + player2Guess);
+                .println(player2Name + " guessed: " + Helper.toOrdinal(player2Guess));
             terminal.writer().println();
 
             // Loading animation
@@ -299,8 +282,8 @@ public class Menu {
             terminal.writer().println();
 
             // Hitung selisih
-            int player1Diff = Math.abs(player1Guess - actualFrequency);
-            int player2Diff = Math.abs(player2Guess - actualFrequency);
+            int player1Diff = Math.abs(player1Guess - actualRank); 
+            int player2Diff = Math.abs(player2Guess - actualRank);
 
             // Tampilkan hasil
             terminal.writer().println("=".repeat(60));
@@ -308,16 +291,16 @@ public class Menu {
                 .writer()
                 .println("                    ROUND " + round + " RESULTS");
             terminal.writer().println("=".repeat(60));
-            terminal.writer().println("Actual frequency: " + actualFrequency);
+            terminal.writer().println("Actual rank: " + Helper.toOrdinal(actualRank));
             terminal.writer().println();
             terminal
                 .writer()
                 .println(
                     player1Name +
                         "'s guess: " +
-                        player1Guess +
+                        Helper.toOrdinal(player1Guess) +
                         " (difference: " +
-                        player1Diff +
+                        Helper.toOrdinal(player1Diff) +
                         ")"
                 );
             terminal
@@ -325,9 +308,9 @@ public class Menu {
                 .println(
                     player2Name +
                         "'s guess: " +
-                        player2Guess +
+                        Helper.toOrdinal(player2Guess) +
                         " (difference: " +
-                        player2Diff +
+                        Helper.toOrdinal(player2Diff) +
                         ")"
                 );
             terminal.writer().println();
@@ -477,21 +460,44 @@ public class Menu {
         // `StringCompleter` and reassign it every time an input is changed is not
         // efficient.
         Completer completer = new Completer() {
+            // Tentukan batas hasil, misalnya 50
+            private final int MAX_SUGGESTIONS = 50; 
+                    
             @Override
             public void complete(
                 LineReader reader,
                 ParsedLine line,
                 List<Candidate> candidates
             ) {
-                String query = line.word();
-                Collection<String> suggestions = tree.search(query);
-
-                for (String suggestion : suggestions) {
-                    candidates.add(new Candidate(suggestion));
+            String query = line.word();
+                        
+            // [FIX 1]: Skip jika query kosong untuk menghindari bug line baru
+            // Selain itu, jika query kosong dan user tekan TAB, tidak perlu 
+            // memuat seluruh dataset.
+            if (query.isEmpty()) {
+                 return;
+            }
+                        
+            // 1. Gunakan searchWithRank() untuk dapat hasil dengan rank
+            ArrayList<RadixTree.Pair> resultsWithRank = tree.searchWithRank(query);
+                        
+            // 2. Sort hasil berdasarkan rank menggunakan merge sort
+            org.fpasd.sort.Sorting.mergeSort(resultsWithRank);
+                        
+            // 3. Convert Pair[] ke String[] untuk display
+            // Kata dengan rank terkecil (paling populer) akan muncul duluan
+            int count = 0; // Hitung kandidat yang sudah ditambahkan
+            for (RadixTree.Pair pair : resultsWithRank) {
+                // [FIX 2]: Batasi jumlah saran untuk menghindari paging JLine
+                if (count >= MAX_SUGGESTIONS) { 
+                    break; 
+                }
+                candidates.add(new Candidate(pair.word));
+                count++;
                 }
             }
         };
-
+                
         LineReader reader = LineReaderBuilder.builder()
             .terminal(terminal)
             .completer(completer)
@@ -531,50 +537,75 @@ public class Menu {
     }
 
     static void showDBQuery(String word, Terminal terminal) {
-        try {
-            // cek apakah kata terdaftar di map
-            Integer id = wordToId.get(word);
-            Integer rank = wordToRank.get(word);
-            Integer freq = wordToFrequency.getOrDefault(word, 0);
-
+        Integer id = null;
+        Integer rank = null;
+        Integer freq = null;
+        boolean definitionFound = false;
+            
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:dictionary.db")) {
+                
+            // 1. Ambil data dari Map lokal (yang diisi dari CSV)
+            id = wordToId.get(word);
+            rank = wordToRank.get(word);
+            freq = wordToFrequency.getOrDefault(word, 0);
+    
             if (id == null) {
-                terminal.writer().println("Word not found in local dataset!");
+                String sqlFindId = "SELECT id, rank, frequency FROM words WHERE word = ?";
+                try (PreparedStatement stmtFindId = connection.prepareStatement(sqlFindId)) {
+                    stmtFindId.setString(1, word);
+                    ResultSet rsFindId = stmtFindId.executeQuery();
+                    if (rsFindId.next()) {
+                        id = rsFindId.getInt("word_id");
+                        rank = rsFindId.getInt("rank"); 
+                        freq = rsFindId.getInt("frequency");
+                    }
+                    rsFindId.close();
+                } catch (SQLException e) {
+                    // Error saat query DB
+                }
+            }
+    
+            if (id == null) {
+                // Jika masih null setelah mencoba map dan DB, kata tidak ditemukan
+                terminal.writer().println("Word not found in local dataset or database!");
                 terminal.writer().flush();
                 return;
             }
-
-            // query definisi dari DB berdasarkan word_id
-            String sql = "SELECT definition FROM definitions WHERE word_id = ?";
-            Connection connection = DriverManager.getConnection(
-                "jdbc:sqlite:dictionary.db"
-            );
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
-
-            // tampilkan rank & frequency dulu
-            terminal.writer().println("Rank: " + Helper.toOrdinal(rank));
+    
+            // Tampilkan Rank & Frequency
+            String rankDisplay = (rank != null) ? Helper.toOrdinal(rank) : "N/A (from DB)";
+            terminal.writer().println("Word: " + word.toUpperCase());
+            terminal.writer().println("Rank: " + rankDisplay);
             terminal.writer().println("Frequency: " + freq);
+            terminal.writer().println();
             terminal.writer().println("Definition:");
-            boolean any = false;
-            while (rs.next()) {
-                any = true;
-                String def = rs.getString("definition");
-                terminal.writer().println("- " + def);
-                terminal.writer().println(); // Tambahkan jarak setelah setiap definisi
-            }
-            if (!any) {
-                terminal
+                
+            String sql = "SELECT definition FROM definitions WHERE word_id = ?";
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setInt(1, id);
+                ResultSet rs = stmt.executeQuery();
+    
+                while (rs.next()) {
+                    definitionFound = true;
+                    String def = rs.getString("definition");
+                    
+                    // Perapihan teks
+                    def = def.replaceAll("\\*\\*(.*?)\\*\\*", "$1");
+                    terminal.writer().println("- " + def);
+                    terminal.writer().println(); 
+                }
+                    
+                if (!definitionFound) {
+                    terminal
                     .writer()
                     .println(
-                        "No definition found in database for this word_id."
+                        "⚠️ No definition found in database for ID: " + id + 
+                        ". Data might be inconsistent between CSV and DB."
                     );
+                }
+                rs.close();
             }
             terminal.writer().flush();
-
-            rs.close();
-            stmt.close();
-            connection.close();
         } catch (Exception e) {
             e.printStackTrace();
         }

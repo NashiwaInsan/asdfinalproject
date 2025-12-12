@@ -6,6 +6,8 @@ import java.util.List;
 
 public class Sorting {
 
+	// Sort ArrayList<Pair> berdasarkan rank (ascending)
+	// Rank kecil = lebih populer = muncul duluan
 	public static void mergeSort(List<RadixTree.Pair> arr) {
 		if (arr.size() <= 1)
 			return;
@@ -36,13 +38,14 @@ public class Sorting {
 		int i = left;
 		int j = mid + 1;
 
+		// PERUBAHAN UTAMA: Sort berdasarkan RANK, bukan length
 		while (i <= mid && j <= right) {
 			RadixTree.Pair itemI = arr.get(i);
 			RadixTree.Pair itemJ = arr.get(j);
-			int d1 = itemI.word.length();
-			int d2 = itemJ.word.length();
-
-			if (d1 <= d2) {
+			
+			// Compare by rank (ascending order)
+			// Rank kecil (lebih populer) muncul duluan
+			if (itemI.rank <= itemJ.rank) {
 				temp.add(itemI);
 				i++;
 			} else {
@@ -51,6 +54,7 @@ public class Sorting {
 			}
 		}
 
+		// Copy sisa elemen
 		while (i <= mid) {
 			temp.add(arr.get(i++));
 		}
@@ -58,7 +62,7 @@ public class Sorting {
 			temp.add(arr.get(j++));
 		}
 
-		// copy back
+		// Copy back ke array asli
 		for (int k = 0; k < temp.size(); k++) {
 			arr.set(left + k, temp.get(k));
 		}
