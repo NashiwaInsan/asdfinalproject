@@ -484,7 +484,6 @@ public class Menu {
                         
             // 3. Convert Pair[] ke String[] untuk display
             // Kata dengan rank terkecil (paling populer) akan muncul duluan
-
             int count = 0; // Hitung kandidat yang sudah ditambahkan
             
             for (RadixTree.Pair pair : resultsWithRank) {
