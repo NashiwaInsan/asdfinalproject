@@ -460,7 +460,7 @@ public class Menu {
         // `StringCompleter` and reassign it every time an input is changed is not
         // efficient.
         Completer completer = new Completer() {
-            // Tentukan batas hasil, misalnya 50
+            // [FIX 2]: Tentukan batas hasil, misalnya 50
             private final int MAX_SUGGESTIONS = 50; 
                     
             @Override
@@ -470,14 +470,12 @@ public class Menu {
                 List<Candidate> candidates
             ) {
             String query = line.word();
-                        
-            // [FIX 1]: Skip jika query kosong untuk menghindari bug line baru
-            // Selain itu, jika query kosong dan user tekan TAB, tidak perlu 
-            // memuat seluruh dataset.
+                    
             if (query.isEmpty()) {
                  return;
             }
-                        
+            
+            // [FIX 1]: Menambahkan Implementasi Merge Sort kedalam Completer            
             // 1. Gunakan searchWithRank() untuk dapat hasil dengan rank
             ArrayList<RadixTree.Pair> resultsWithRank = tree.searchWithRank(query);
                         
@@ -486,9 +484,12 @@ public class Menu {
                         
             // 3. Convert Pair[] ke String[] untuk display
             // Kata dengan rank terkecil (paling populer) akan muncul duluan
+
             int count = 0; // Hitung kandidat yang sudah ditambahkan
+            
             for (RadixTree.Pair pair : resultsWithRank) {
-                // [FIX 2]: Batasi jumlah saran untuk menghindari paging JLine
+                
+                // Batasi jumlah saran untuk menghindari paging JLine
                 if (count >= MAX_SUGGESTIONS) { 
                     break; 
                 }
@@ -602,6 +603,7 @@ public class Menu {
                         "⚠️ No definition found in database for ID: " + id + 
                         ". Data might be inconsistent between CSV and DB."
                     );
+                    terminal.writer().println(); 
                 }
                 rs.close();
             }
