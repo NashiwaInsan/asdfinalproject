@@ -18,6 +18,7 @@ import org.jline.reader.ParsedLine;
 import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.*;
 import org.jline.utils.InfoCmp.Capability;
+
 // import java.util.Collection;
 
 public class Menu {
@@ -83,7 +84,7 @@ public class Menu {
 
     static void playAGame(Terminal terminal) {
         terminal.puts(Capability.clear_screen);
-        
+
         // Banner game
         String gameBanner = FigletFont.convertOneLine("Rank Game"); // Perubahan
         terminal.writer().println(gameBanner);
@@ -91,7 +92,9 @@ public class Menu {
         terminal
             .writer()
             // Perubahan
-            .println("Guess the word rank! Closest guess wins! (Rank 0 is most common)"); 
+            .println(
+                "Guess the word rank! Closest guess wins! (Rank 0 is most common)"
+            );
         terminal.writer().println("Best of 3 rounds");
         terminal.writer().println("=".repeat(60));
         terminal.writer().println();
@@ -181,19 +184,18 @@ public class Menu {
         int player1Score = 0;
         int player2Score = 0;
         java.util.Random random = new java.util.Random();
-        
+
         for (int round = 1; round <= 3; round++) {
-        
             // Pilih kata random
             String selectedWord = wordList.get(random.nextInt(wordList.size()));
-            int actualRank = wordToRank.get(selectedWord); 
-        
+            int actualRank = wordToRank.get(selectedWord);
+
             // Tampilkan kata
             String wordDisplay = FigletFont.convertOneLine(selectedWord);
             terminal.writer().println(wordDisplay);
             terminal.writer().println("Word: " + selectedWord.toUpperCase());
             // Perubahan: Minta tebak rank
-            terminal.writer().println("Guess the rank of this word!"); 
+            terminal.writer().println("Guess the rank of this word!");
             terminal.writer().println();
 
             // Player 1 input
@@ -227,7 +229,9 @@ public class Menu {
 
             terminal
                 .writer()
-                .println(player1Name + " guessed: " + Helper.toOrdinal(player1Guess));
+                .println(
+                    player1Name + " guessed: " + Helper.toOrdinal(player1Guess)
+                );
             terminal.writer().println();
 
             // Player 2 input
@@ -261,7 +265,9 @@ public class Menu {
 
             terminal
                 .writer()
-                .println(player2Name + " guessed: " + Helper.toOrdinal(player2Guess));
+                .println(
+                    player2Name + " guessed: " + Helper.toOrdinal(player2Guess)
+                );
             terminal.writer().println();
 
             // Loading animation
@@ -282,7 +288,7 @@ public class Menu {
             terminal.writer().println();
 
             // Hitung selisih
-            int player1Diff = Math.abs(player1Guess - actualRank); 
+            int player1Diff = Math.abs(player1Guess - actualRank);
             int player2Diff = Math.abs(player2Guess - actualRank);
 
             // Tampilkan hasil
@@ -291,7 +297,9 @@ public class Menu {
                 .writer()
                 .println("                    ROUND " + round + " RESULTS");
             terminal.writer().println("=".repeat(60));
-            terminal.writer().println("Actual rank: " + Helper.toOrdinal(actualRank));
+            terminal
+                .writer()
+                .println("Actual rank: " + Helper.toOrdinal(actualRank));
             terminal.writer().println();
             terminal
                 .writer()
@@ -461,43 +469,59 @@ public class Menu {
         // efficient.
         Completer completer = new Completer() {
             // [FIX 2]: Tentukan batas hasil, misalnya 50
-            private final int MAX_SUGGESTIONS = 50; 
-                    
+            private final int MAX_SUGGESTIONS = 50;
+
             @Override
             public void complete(
                 LineReader reader,
                 ParsedLine line,
                 List<Candidate> candidates
             ) {
-            String query = line.word();
-                    
-            if (query.isEmpty()) {
-                 return;
-            }
-            
-            // [FIX 1]: Menambahkan Implementasi Merge Sort kedalam Completer            
-            // 1. Gunakan searchWithRank() untuk dapat hasil dengan rank
-            ArrayList<RadixTree.Pair> resultsWithRank = tree.searchWithRank(query);
-                        
-            // 2. Sort hasil berdasarkan rank menggunakan merge sort
-            org.fpasd.sort.Sorting.mergeSort(resultsWithRank);
-                        
-            // 3. Convert Pair[] ke String[] untuk display
-            // Kata dengan rank terkecil (paling populer) akan muncul duluan
-            int count = 0; // Hitung kandidat yang sudah ditambahkan
-            
-            for (RadixTree.Pair pair : resultsWithRank) {
-                
-                // Batasi jumlah saran untuk menghindari paging JLine
-                if (count >= MAX_SUGGESTIONS) { 
-                    break; 
+                String query = line.word();
+
+                if (query.isEmpty()) {
+                    return;
                 }
-                candidates.add(new Candidate(pair.word));
-                count++;
+
+                // [FIX 1]: Menambahkan Implementasi Merge Sort kedalam Completer
+                // 1. Gunakan searchWithRank() untuk dapat hasil dengan rank
+                ArrayList<RadixTree.Pair> resultsWithRank = tree.searchWithRank(
+                    query
+                );
+
+                // 2. Sort hasil berdasarkan rank menggunakan merge sort
+                org.fpasd.sort.Sorting.mergeSort(resultsWithRank);
+
+                // 3. Convert Pair[] ke String[] untuk display
+                // Kata dengan rank terkecil (paling populer) akan muncul duluan
+                int count = 0; // Hitung kandidat yang sudah ditambahkan
+
+                for (RadixTree.Pair pair : resultsWithRank) {
+                    // Batasi jumlah saran untuk menghindari paging JLine
+                    if (count >= MAX_SUGGESTIONS) {
+                        break;
+                    }
+                    candidates.add(
+                        // FIX: sebelumnya jika hanya diisi `new Candidate(pair.word)`, `JLine`
+                        // akan mengurutkannya kembali berdasarkan urutan leksikografis (walaupun sudah diurut dalam `mergeSort`)
+                        // maka dari itu, kita perlu memanggil konstruktor penuhnya dan memberikan parameter `sort` yaitu
+                        // parameter yang ada diakhir konstruktor untuk mengindikasikan bahwa kandidat ini memiliki prioritas ke `sort`
+                        new Candidate(
+                            pair.word,
+                            pair.word,
+                            null,
+                            null,
+                            null,
+                            null,
+                            true,
+                            pair.rank
+                        )
+                    );
+                    count++;
                 }
             }
         };
-                
+
         LineReader reader = LineReaderBuilder.builder()
             .terminal(terminal)
             .completer(completer)
@@ -541,22 +565,30 @@ public class Menu {
         Integer rank = null;
         Integer freq = null;
         boolean definitionFound = false;
-            
-        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:dictionary.db")) {
-                
+
+        try (
+            Connection connection = DriverManager.getConnection(
+                "jdbc:sqlite:dictionary.db"
+            )
+        ) {
             // 1. Ambil data dari Map lokal (yang diisi dari CSV)
             id = wordToId.get(word);
             rank = wordToRank.get(word);
             freq = wordToFrequency.getOrDefault(word, 0);
-    
+
             if (id == null) {
-                String sqlFindId = "SELECT id, rank, frequency FROM words WHERE word = ?";
-                try (PreparedStatement stmtFindId = connection.prepareStatement(sqlFindId)) {
+                String sqlFindId =
+                    "SELECT id, rank, frequency FROM words WHERE word = ?";
+                try (
+                    PreparedStatement stmtFindId = connection.prepareStatement(
+                        sqlFindId
+                    )
+                ) {
                     stmtFindId.setString(1, word);
                     ResultSet rsFindId = stmtFindId.executeQuery();
                     if (rsFindId.next()) {
                         id = rsFindId.getInt("word_id");
-                        rank = rsFindId.getInt("rank"); 
+                        rank = rsFindId.getInt("rank");
                         freq = rsFindId.getInt("frequency");
                     }
                     rsFindId.close();
@@ -564,45 +596,50 @@ public class Menu {
                     // Error saat query DB
                 }
             }
-    
+
             if (id == null) {
                 // Jika masih null setelah mencoba map dan DB, kata tidak ditemukan
-                terminal.writer().println("Word not found in local dataset or database!");
+                terminal
+                    .writer()
+                    .println("Word not found in local dataset or database!");
                 terminal.writer().flush();
                 return;
             }
-    
+
             // Tampilkan Rank & Frequency
-            String rankDisplay = (rank != null) ? Helper.toOrdinal(rank) : "N/A (from DB)";
+            String rankDisplay = (rank != null)
+                ? Helper.toOrdinal(rank)
+                : "N/A (from DB)";
             terminal.writer().println("Word: " + word.toUpperCase());
             terminal.writer().println("Rank: " + rankDisplay);
             terminal.writer().println("Frequency: " + freq);
             terminal.writer().println();
             terminal.writer().println("Definition:");
-                
+
             String sql = "SELECT definition FROM definitions WHERE word_id = ?";
             try (PreparedStatement stmt = connection.prepareStatement(sql)) {
                 stmt.setInt(1, id);
                 ResultSet rs = stmt.executeQuery();
-    
+
                 while (rs.next()) {
                     definitionFound = true;
                     String def = rs.getString("definition");
-                    
+
                     // Perapihan teks
                     def = def.replaceAll("\\*\\*(.*?)\\*\\*", "$1");
                     terminal.writer().println("- " + def);
-                    terminal.writer().println(); 
+                    terminal.writer().println();
                 }
-                    
+
                 if (!definitionFound) {
                     terminal
-                    .writer()
-                    .println(
-                        "⚠️ No definition found in database for ID: " + id + 
-                        ". Data might be inconsistent between CSV and DB."
-                    );
-                    terminal.writer().println(); 
+                        .writer()
+                        .println(
+                            "⚠️ No definition found in database for ID: " +
+                                id +
+                                ". Data might be inconsistent between CSV and DB."
+                        );
+                    terminal.writer().println();
                 }
                 rs.close();
             }
